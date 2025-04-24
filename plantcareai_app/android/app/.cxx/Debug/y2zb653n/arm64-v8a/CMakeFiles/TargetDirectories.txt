@@ -1,0 +1,2 @@
+C:/Users/leonk/OneDrive/CSU_Chico_Undergrad_Work/CSCI_490/PlantCareAI/plantcareai_app/android/app/.cxx/Debug/y2zb653n/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/leonk/OneDrive/CSU_Chico_Undergrad_Work/CSCI_490/PlantCareAI/plantcareai_app/android/app/.cxx/Debug/y2zb653n/arm64-v8a/CMakeFiles/rebuild_cache.dir
