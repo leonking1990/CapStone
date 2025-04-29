@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'plant_provider.dart'; //
-import 'firestore.dart'; //
+import '../../../core/providers/plant_provider.dart'; //
+import '../../../core/services/firestore_service.dart'; //
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart'; // For kDebugMode
 

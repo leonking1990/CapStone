@@ -4,7 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart'; // Import Provider
 import 'package:intl/intl.dart'; // Import intl for date formatting
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Timestamp
-import 'plant_provider.dart'; // Import PlantProvider
+import '../../../core/providers/plant_provider.dart'; // Import PlantProvider
+import 'package:plantcareai/shared/widgets/chat_popup_widget.dart';
 
 class WateringTask {
   final String plantId;
@@ -28,6 +29,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  
+  // --- State for Overlay ---
+  OverlayEntry? _overlayEntry; // Holds the reference to the overlay
+  bool _isOverlayVisible = false; // Tracks if the overlay is currently shown
+  final GlobalKey _fabKey = GlobalKey(); // Key to get FAB's position
+  // --- End State for Overlay ---
+  
   @override
   void initState() {
     super.initState();
@@ -99,6 +107,102 @@ class _HomePageState extends State<HomePage> {
     tasks.sort((a, b) => a.dueDate.compareTo(b.dueDate));
     return tasks;
   }
+
+  // --- Method to Show the Overlay ---
+  void _showOverlay(BuildContext context) {
+    // Get the OverlayState
+    final overlay = Overlay.of(context);
+    // Get the RenderBox of the FAB using its GlobalKey
+    final RenderBox? fabRenderBox = _fabKey.currentContext?.findRenderObject() as RenderBox?;
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    String welcomeName = currentUser?.displayName ?? 'Guest'; 
+
+    if (overlay == null || fabRenderBox == null) {
+      print("Error: Could not find Overlay or FAB RenderBox.");
+      return;
+    }
+
+    // Get the size and position of the FAB in global coordinates
+    final fabSize = fabRenderBox.size;
+    final fabPosition = fabRenderBox.localToGlobal(Offset.zero);
+
+    // --- Create the OverlayEntry ---
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+        // Calculate position for the chat popup (e.g., above the FAB)
+        // Adjust these calculations as needed for desired placement & padding
+        final double rightPadding = fabSize.width / 2; // Align right edge roughly with FAB center
+        final double bottomPadding = fabSize.height + 10; // Place 10px above the FAB
+        const double horizontalPadding = 15.0; 
+          final double relativeTailCenterX =
+              (fabPosition.dx + fabSize.width / 2); // - horizontalPadding; 
+
+        // Use a Stack to layer the dismiss barrier and the chat content
+        return Stack(
+          children: [
+            // --- Dismiss Barrier ---
+            // Full screen GestureDetector to capture taps outside the popup
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _hideOverlay, // Hide overlay when tapped outside
+                behavior: HitTestBehavior.translucent, // Captures taps on transparent areas
+                // Optional: Add a semi-transparent background
+                child: Container(
+                  color: Colors.black.withOpacity(0.1),
+                ),
+              ),
+            ),
+            // --- Positioned Chat Popup ---
+            Positioned(
+              // Position relative to the screen edges
+              left: horizontalPadding,
+              right: horizontalPadding, // Distance from the right edge of the screen
+              bottom: bottomPadding+keyboardHeight, // Distance from the bottom edge of the screen
+              // Constrain the size of the chat popup
+              child: Material( // Add Material for theme defaults if needed by ChatPopupWidget internals
+                 elevation: 4.0, // Add shadow
+                 borderRadius: BorderRadius.circular(12), // Match potential bubble shape
+                 child: CustomPaint(
+                    painter: ChatBubblePainter( // Copied from your uploaded file
+                       color: Theme.of(context).colorScheme.surface, // Copied from your uploaded file
+                       tailCenterX: relativeTailCenterX, // Copied from your uploaded file
+                       borderRadius: 12, // Copied from your uploaded file
+                       tailHeight: 10, // Copied from your uploaded file
+                    ),
+                    child: ChatPopupWidget(),
+                  ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Insert the OverlayEntry into the Overlay
+    overlay.insert(_overlayEntry!);
+    setState(() {
+      _isOverlayVisible = true;
+    });
+  }
+
+  // --- Method to Hide the Overlay ---
+  void _hideOverlay() {
+    // Remove the overlay entry and update state
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    setState(() {
+      _isOverlayVisible = false;
+    });
+  }
+
+  // Ensure overlay is removed when the widget is disposed
+  @override
+  void dispose() {
+    _hideOverlay(); // Clean up overlay if visible
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -195,13 +299,13 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pushNamed(context, '/myPlants');
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: const Text('Calendar'),
-              onTap: () {
-                // Handle calendar navigation here
-              },
-            ),
+            // ListTile(
+            //   leading: const Icon(Icons.calendar_today),
+            //   title: const Text('Calendar'),
+            //   onTap: () {
+            //     // Handle calendar navigation here
+            //   },
+            // ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
@@ -288,6 +392,28 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+      floatingActionButton: SizedBox(
+        width: _isOverlayVisible ? 30 : 70,
+        height: _isOverlayVisible ? 30 : 70,
+        child: FloatingActionButton(
+          key: _fabKey, // Assign key to get position later
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          // mini: _isOverlayVisible ? true : false, // Make it mini when overlay is shown
+          // Change icon based on overlay visibility (optional)
+          child: Icon(_isOverlayVisible ? Icons.close : Icons.chat_bubble_outline),
+          tooltip: _isOverlayVisible ? 'Close Chat' : 'Chat Assistant',
+          
+          onPressed: () {
+            // Toggle the overlay's visibility
+            if (_isOverlayVisible) {
+              _hideOverlay();
+            } else {
+              _showOverlay(context);
+            }
+          },
+        ),
+      ),
     );
   }
 
@@ -364,3 +490,65 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+class Triangle extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white // Change to your desired color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+      path.lineTo(-10, 0);
+      path.lineTo(0, 0);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false; // No need to repaint unless the size changes or color changes
+  }
+}
+class ChatBubblePainter extends CustomPainter {
+   final Color color;
+   final double tailBaseWidth;
+   final double tailHeight;
+   final double borderRadius;
+   final double tailCenterX;
+
+   ChatBubblePainter({
+     required this.color,
+     this.tailBaseWidth = 20.0,
+     this.tailHeight = 10.0,
+     this.borderRadius = 12.0,
+     required this.tailCenterX,
+   });
+
+   @override
+   void paint(Canvas canvas, Size size) {
+      final paint = Paint()
+       ..color = color
+       ..style = PaintingStyle.fill;
+      final path = Path();
+      // ... (drawing logic for rounded rect + tail) ...
+       path.moveTo(borderRadius, 0);
+       path.lineTo(size.width - borderRadius, 0);
+       path.arcToPoint(Offset(size.width, borderRadius), radius: Radius.circular(borderRadius));
+       path.lineTo(size.width, size.height - borderRadius);
+       path.arcToPoint(Offset(size.width - borderRadius, size.height), radius: Radius.circular(borderRadius));
+       path.lineTo(tailCenterX + (tailBaseWidth / 2), size.height);
+       path.lineTo(tailCenterX, size.height + tailHeight);
+       path.lineTo(tailCenterX - (tailBaseWidth / 2), size.height);
+       path.lineTo(borderRadius, size.height);
+       path.arcToPoint(Offset(0, size.height - borderRadius), radius: Radius.circular(borderRadius));
+       path.lineTo(0, borderRadius);
+       path.arcToPoint(Offset(borderRadius, 0), radius: Radius.circular(borderRadius));
+       path.close();
+       canvas.drawPath(path, paint);
+   }
+
+   @override
+   bool shouldRepaint(covariant ChatBubblePainter oldDelegate) {
+     return oldDelegate.color != color || oldDelegate.tailCenterX != tailCenterX;
+   }
+ }

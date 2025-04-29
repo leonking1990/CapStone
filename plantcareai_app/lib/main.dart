@@ -3,20 +3,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'theme_provider.dart';
-import 'plant_provider.dart';
-import 'MyPlantsPage.dart';
-import 'SettingsPage.dart';
-import 'WelcomePage.dart';
-import 'LoginPage.dart';
-import 'HomePage.dart';
-import 'AccountCreationPage.dart';
-import 'PlantProfilePage.dart';
-import 'PredictionPage.dart';
-import 'EditProfilePage.dart';
-import 'ChangePasswordPage.dart';
-import 'ScanPlantPage.dart';
-import 'DiseaseTreatmentPage.dart';
+import 'core/providers/theme_provider.dart';
+import 'core/providers/plant_provider.dart';
+import 'features/chat/pages/chat_box_screen.dart';
+import 'features/plants/pages/My_Plants_Page.dart';
+import 'features/settings/pages/Settings_Page.dart';
+import 'features/welcome/pages/Welcome_Page.dart';
+import 'features/auth/pages/Login_Page.dart';
+import 'features/home/pages/Home_Page.dart';
+import 'features/auth/pages/Account_Creation_Page.dart';
+import 'features/plants/pages/Plant_Profile_Page.dart';
+import 'features/plants/pages/Prediction_Page.dart';
+import 'features/settings/pages/Edit_Profile_Page.dart';
+import 'features/settings/pages/Change_Password_Page.dart';
+import 'features/plants/pages/Scan_Plant_Page.dart';
+import 'features/plants/pages/Disease_Treatment_Page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
             '/changePassword': (context) => const ChangePasswordPage(),
             '/scan': (context) => const ScanPlantPage(),
             '/diseaseTreatment': (context) => const DiseaseTreatmentPage(),
+            '/chat': (context) => const ChatBoxScreen(),
             '/prediction': (context) {
               final args = ModalRoute.of(context)?.settings.arguments
                   as Map<String, dynamic>?;

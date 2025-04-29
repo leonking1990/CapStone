@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:plantcareai/fireBaseAuth.dart';
-import 'package:plantcareai/firestore.dart';
+import 'package:plantcareai/core/services/auth_service.dart';
+import 'package:plantcareai/core/services/firestore_service.dart';
 
 class AccountCreationPage extends StatefulWidget {
   AccountCreationPage({super.key});

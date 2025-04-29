@@ -2,20 +2,134 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'plant_provider.dart'; //
+import 'package:plantcareai/core/providers/plant_provider.dart'; //
 import 'package:intl/intl.dart'; // For date formatting
 import 'package:cloud_firestore/cloud_firestore.dart'; // For Timestamp
+import 'package:plantcareai/shared/widgets/chat_popup_widget.dart';
 
-class PlantProfilePage extends StatelessWidget {
+class PlantProfilePage extends StatefulWidget {
+  // If you need to pass the plantId initially, do it here
+  // final String plantId;
+  // const PlantProfilePage({super.key, required this.plantId});
+
+  const PlantProfilePage({super.key}); // Assuming plantId comes via ModalRoute
+
+  @override
+  State<PlantProfilePage> createState() => _PlantProfilePageState();
+}
+
+class _PlantProfilePageState extends State<PlantProfilePage> {
   // Helper to format Timestamp or return placeholder
+
+  OverlayEntry? _overlayEntry;
+  bool _isOverlayVisible = false;
+  final GlobalKey _fabKey = GlobalKey();
+
+  // Inside _PlantProfilePageState in Plant_Profile_Page.dart
+
+void _showOverlay(BuildContext context, String plantContext) {
+  final overlay = Overlay.of(context);
+  final RenderBox? fabRenderBox = _fabKey.currentContext?.findRenderObject() as RenderBox?;
+
+  if (fabRenderBox == null) {
+    print("Error: Could not find FAB RenderBox."); // <-- Debug Check
+    return;
+  }
+   print("FAB RenderBox found. Position: ${fabRenderBox.localToGlobal(Offset.zero)}, Size: ${fabRenderBox.size}"); // <-- Debug Print
+
+  final fabSize = fabRenderBox.size;
+  final fabPosition = fabRenderBox.localToGlobal(Offset.zero);
+  final screenWidth = MediaQuery.of(context).size.width;
+
+  _overlayEntry = OverlayEntry(
+    builder: (context) {
+       
+       try { // Add try-catch around the builder content
+          final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+          // ... rest of calculations ...
+          //final double rightPadding = fabSize.width / 2;
+          final double bottomPadding = fabSize.height + 10 + keyboardHeight;
+          const double horizontalPadding = 15.0; 
+          final double relativeTailCenterX =
+              (fabPosition.dx + fabSize.width / 2); // - horizontalPadding; 
+
+          return Stack(
+            children: [
+              // Dismiss Barrier
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _hideOverlay,
+                  behavior: HitTestBehavior.translucent,
+                  child: Container(color: Colors.black.withOpacity(0.1)),
+                 ),
+              ),
+              // Positioned Chat Popup
+              Positioned(
+                left: horizontalPadding, // Copied from your uploaded file
+                right: horizontalPadding, // Copied from your uploaded file
+                bottom: bottomPadding+keyboardHeight, // Copied from your uploaded file
+                child: Material(
+                  color: Colors.transparent, // Copied from your uploaded file
+                  elevation: 4.0, // Copied from your uploaded file
+                  shadowColor: Colors.black.withOpacity(0.3), // Copied from your uploaded file
+                  borderRadius: BorderRadius.circular(12), // Copied from your uploaded file
+                  child: CustomPaint(
+                    painter: ChatBubblePainter( // Copied from your uploaded file
+                       color: Theme.of(context).colorScheme.surface, // Copied from your uploaded file
+                       tailCenterX: relativeTailCenterX, // Copied from your uploaded file
+                       borderRadius: 12, // Copied from your uploaded file
+                       tailHeight: 10, // Copied from your uploaded file
+                    ),
+                    child: ChatPopupWidget(initialContext: plantContext),
+                  ),
+                ),
+              ),
+            ],
+          );
+       } catch (e, s) { // Catch errors during build
+           print("Error building OverlayEntry content: $e\n$s"); // <-- Debug Error Catching
+           // Return a simple error widget instead
+           return Positioned(top: 100, left: 50, child: Material(child: Text("Error building overlay: $e")));
+       }
+    },
+  );
+
+  print("OverlayEntry created. Inserting..."); // <-- Debug Print
+  overlay.insert(_overlayEntry!);
+  print("OverlayEntry inserted."); // <-- Debug Print
+
+  // Use setState inside WidgetsBinding callback to avoid potential build conflicts
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+     if (mounted) { // Check if still mounted
+        setState(() {
+           _isOverlayVisible = true;
+        });
+         print("State set, _isOverlayVisible: $_isOverlayVisible"); // <-- Debug Print
+     }
+  });
+}
+
+  void _hideOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    setState(() {
+      _isOverlayVisible = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _hideOverlay(); // Clean up overlay
+    super.dispose();
+  }
+  // --
+
   String _formatTimestamp(Timestamp? timestamp, {String placeholder = 'N/A'}) {
     if (timestamp == null) return placeholder;
     try {
-      // Choose your desired format (e.g., date and time)
       return DateFormat.yMd().add_jm().format(timestamp.toDate());
     } catch (e) {
-      if (kDebugMode) print("Error formatting timestamp: $e");
-      return placeholder; // Fallback on error
+      return placeholder;
     }
   }
 
@@ -57,9 +171,9 @@ class PlantProfilePage extends StatelessWidget {
             );
           } catch (e) {
             plant = null;
-            if (kDebugMode)
+            if (kDebugMode) {
               print("Plant with ID '$plantId' not found in provider list.");
-            // Optional: Trigger refresh? Consider UX implications.
+            }
           }
         }
 
@@ -99,6 +213,23 @@ class PlantProfilePage extends StatelessWidget {
             lastWateredDate.add(Duration(days: frequencyInDays));
         final DateTime nextDueDateOnly =
             DateTime(nextDueDate.year, nextDueDate.month, nextDueDate.day);
+
+        String currentPlantContext =
+            "User is viewing the profile for plant ID: $plantId.";
+        if (plant != null) {
+          currentPlantContext = """
+Currently viewing plant:
+Name: ${plant['name'] ?? 'N/A'}
+Species: ${plant['species'] ?? 'N/A'}
+Health: ${plant['healthStatus'] ?? 'N/A'}
+Watering: ${plant['water_frequency'] ?? 'N/A'}
+Sunlight: ${plant['sunlight'] ?? 'N/A'}""";
+          if (healthStatus.toLowerCase() == 'unhealthy' &&
+              diseaseName != null &&
+              diseaseName.isNotEmpty) {
+            currentPlantContext += "\nCurrent Disease: $diseaseName";
+          }
+        }
 
         return Scaffold(
           appBar: AppBar(
@@ -300,17 +431,31 @@ class PlantProfilePage extends StatelessWidget {
                           children: [
                             _buildDetailRow(context, 'Genus', genus),
                             _buildDetailRow(context, 'Family', family),
+                            _buildDetailRow(context, 'species', plantSpecies),
+                            Center(
+                              child: Text(
+                                'Description:',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.color,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                             if (description != 'N/A' && description.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(description,
-                                    style: TextStyle(
-                                        color: secondaryTextColor,
-                                        fontSize: 14),
-                                    textAlign: TextAlign.center),
+                                child: Center(
+                                  child: Text(description,
+                                      style: TextStyle(
+                                          color: secondaryTextColor,
+                                          fontSize: 14),
+                                      textAlign: TextAlign.center),
+                                ),
                               ),
-                            _buildDetailRow(
-                                context, 'Date Added', addedDateStr),
                           ]),
                       const SizedBox(height: 30), // Spacer before buttons
 
@@ -416,6 +561,30 @@ class PlantProfilePage extends StatelessWidget {
                     ],
                   ),
                 ),
+          floatingActionButton: plant == null
+              ? null
+              : SizedBox(
+                width: _isOverlayVisible ? 30 : 70,
+                height: _isOverlayVisible ? 30 : 70,
+                child: FloatingActionButton(
+                  key: _fabKey,
+                    // Only show if plant data exists
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    child: Icon(_isOverlayVisible ? Icons.close : Icons.chat_bubble_outline),
+                    tooltip: 'Ask about this plant',
+                    onPressed: () {
+                          print("FAB tapped. _isOverlayVisible: $_isOverlayVisible"); // <-- Add Print
+                          if (_isOverlayVisible) {
+                            _hideOverlay();
+                          } else {
+                            // Make sure currentPlantContext is valid before calling
+                            print("Attempting to show overlay with context: $currentPlantContext"); // <-- Add Print
+                            _showOverlay(context, currentPlantContext);
+                          }
+                        },
+                  ),
+              ),
         );
       },
     );
@@ -540,7 +709,7 @@ class PlantProfilePage extends StatelessWidget {
       elevation: onPressed != null ? 2 : 0,
     );
     return SizedBox(
-      width: double.infinity,
+      // width: double.infinity,
       child: icon != null
           ? ElevatedButton.icon(
               style: style,
@@ -556,3 +725,47 @@ class PlantProfilePage extends StatelessWidget {
     );
   }
 }
+
+class ChatBubblePainter extends CustomPainter {
+   final Color color;
+   final double tailBaseWidth;
+   final double tailHeight;
+   final double borderRadius;
+   final double tailCenterX;
+
+   ChatBubblePainter({
+     required this.color,
+     this.tailBaseWidth = 20.0,
+     this.tailHeight = 10.0,
+     this.borderRadius = 12.0,
+     required this.tailCenterX,
+   });
+
+   @override
+   void paint(Canvas canvas, Size size) {
+      final paint = Paint()
+       ..color = color
+       ..style = PaintingStyle.fill;
+      final path = Path();
+      // ... (drawing logic for rounded rect + tail) ...
+       path.moveTo(borderRadius, 0);
+       path.lineTo(size.width - borderRadius, 0);
+       path.arcToPoint(Offset(size.width, borderRadius), radius: Radius.circular(borderRadius));
+       path.lineTo(size.width, size.height - borderRadius);
+       path.arcToPoint(Offset(size.width - borderRadius, size.height), radius: Radius.circular(borderRadius));
+       path.lineTo(tailCenterX + (tailBaseWidth / 2), size.height);
+       path.lineTo(tailCenterX, size.height + tailHeight);
+       path.lineTo(tailCenterX - (tailBaseWidth / 2), size.height);
+       path.lineTo(borderRadius, size.height);
+       path.arcToPoint(Offset(0, size.height - borderRadius), radius: Radius.circular(borderRadius));
+       path.lineTo(0, borderRadius);
+       path.arcToPoint(Offset(borderRadius, 0), radius: Radius.circular(borderRadius));
+       path.close();
+       canvas.drawPath(path, paint);
+   }
+
+   @override
+   bool shouldRepaint(covariant ChatBubblePainter oldDelegate) {
+     return oldDelegate.color != color || oldDelegate.tailCenterX != tailCenterX;
+   }
+ }
