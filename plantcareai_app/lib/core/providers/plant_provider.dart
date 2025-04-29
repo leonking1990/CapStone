@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:plantcareai/firestore.dart'; //
+import 'package:plantcareai/core/services/firestore_service.dart'; //
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PlantProvider extends ChangeNotifier {

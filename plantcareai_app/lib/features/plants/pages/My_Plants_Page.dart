@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'plant_provider.dart';
-import 'PlantCard.dart';
+import '../../../core/providers/plant_provider.dart';
+import '../widgets/PlantCard.dart';
 
 class MyPlantsPage extends StatefulWidget {
   const MyPlantsPage({super.key});
@@ -96,11 +97,11 @@ class _MyPlantsPageState extends State<MyPlantsPage> {
             padding: const EdgeInsets.all(12.0),
             child: GridView.builder(
               itemCount: plants.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // 2 items per row
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.75, // Adjust card proportions here
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 200.0, // Max width for each item/column
+                crossAxisSpacing: 15.0, // Keep spacing between columns
+                mainAxisSpacing: 20.0, // Keep spacing between rows
+                childAspectRatio: 0.70,
               ),
               itemBuilder: (context, index) {
                 final plant = plants[index];
@@ -117,8 +118,10 @@ class _MyPlantsPageState extends State<MyPlantsPage> {
                       );
                     } else {
                       // Show a message if plantId is somehow missing from the data
-                      print(
-                          "Error: plantId missing for plant at index $index: ${plant['name'] ?? plant['species']}"); // Add debug print
+                      if (kDebugMode) {
+                        print(
+                            "Error: plantId missing for plant at index $index: ${plant['name'] ?? plant['species']}");
+                      } // Add debug print
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content: Text(
                               'Cannot view details: Plant identifier is missing.')));

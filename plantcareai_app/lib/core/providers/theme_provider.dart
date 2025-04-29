@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'theme.dart'; // Import light & dark themes
+import '../theme/app_theme.dart'; // Import light & dark themes
 
 class ThemeProvider extends ChangeNotifier {
   ThemeData _currentTheme = AppThemes.lightTheme; // Default to Light Mode
