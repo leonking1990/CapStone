@@ -19,7 +19,7 @@ class _PlantCardState extends State<PlantCard>
     with SingleTickerProviderStateMixin {
   // Need TickerProvider for animation
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+  // late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -33,8 +33,8 @@ class _PlantCardState extends State<PlantCard>
     );
     // Start at full scale
     _controller.value = 1.0;
-    // Create animation (can use CurvedAnimation if desired)
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(_controller);
+    // Create animation 
+    // _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(_controller);
 
     // Alternative using CurvedAnimation for smoother effect:
     // _scaleAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
@@ -82,7 +82,7 @@ class _PlantCardState extends State<PlantCard>
     final String imageUrl = widget.plant['imageThumbnailUrl'] as String? ??
         widget.plant['image'] as String? ??
         'N/A';
-    // --- End styling logic ---
+    
 
     return GestureDetector(
       onTapDown: _handleTapDown,
@@ -91,7 +91,7 @@ class _PlantCardState extends State<PlantCard>
       child: ScaleTransition(
         // Apply the scale animation
         scale:
-            _controller, // Use controller directly or _scaleAnimation if using CurvedAnimation
+            _controller, // Use controller directly or _scaleAnimation if using CurvedAnimation (currently commented out 22, 37, 40)
         child: Container(
           // The original card container
           decoration: BoxDecoration(

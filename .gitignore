@@ -1,3 +1,4 @@
 
 # Folders to ignore
 __pycache__
+.vscode

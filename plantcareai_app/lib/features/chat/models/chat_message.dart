@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 class ChatMessage {
   final String id; // Unique identifier, useful for streaming updates
   final String text;
@@ -36,7 +35,8 @@ class ChatMessage {
       'id': id,
       'text': text,
       'isUser': isUser,
-      // Note: We aren't storing timestamps here, but you could add one if needed
+      // Note to future Stevie: I am not storing timestamps here, but could add one if needed (mite be a nice feature)
+      // 'timestamp': DateTime.now().toIso8601String(), // Uncomment if I want to store timestamp
     };
   }
 

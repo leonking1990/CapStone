@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plantcareai/features/chat/pages/chat_box_screen.dart';
+
 
 class BaseScaffold extends StatelessWidget {
   final Widget body;

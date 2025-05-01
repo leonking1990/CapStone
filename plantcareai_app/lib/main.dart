@@ -48,8 +48,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'PlantCareAi',
           theme: themeProvider.theme, // Use the theme from ThemeProvider
-          // darkTheme: AppThemes.darkTheme, // Or themeProvider.darkTheme if defined
-          // themeMode: themeProvider.themeMode, // If you add ThemeMode support
+          // darkTheme: AppThemes.darkTheme,
+          // themeMode: themeProvider.themeMode,
           initialRoute: getInitialRoute(),
           routes: {
             '/': (context) => const WelcomePage(),
@@ -77,7 +77,6 @@ class MyApp extends StatelessWidget {
                   print(
                       "Error: Missing required arguments for /prediction route.");
                 }
-                // You could return a simple error Scaffold:
                 return Scaffold(
                     appBar: AppBar(title: const Text("Error")),
                     body: const Center(

@@ -8,12 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // For Timestamp
 import 'package:plantcareai/shared/widgets/chat_popup_widget.dart';
 
 class PlantProfilePage extends StatefulWidget {
-  // If you need to pass the plantId initially, do it here
-  // final String plantId;
-  // const PlantProfilePage({super.key, required this.plantId});
-
-  const PlantProfilePage({super.key}); // Assuming plantId comes via ModalRoute
-
+  
+  const PlantProfilePage({super.key}); 
   @override
   State<PlantProfilePage> createState() => _PlantProfilePageState();
 }
@@ -39,7 +35,7 @@ void _showOverlay(BuildContext context, String plantContext) {
 
   final fabSize = fabRenderBox.size;
   final fabPosition = fabRenderBox.localToGlobal(Offset.zero);
-  final screenWidth = MediaQuery.of(context).size.width;
+  // final screenWidth = MediaQuery.of(context).size.width;
 
   _overlayEntry = OverlayEntry(
     builder: (context) {
@@ -51,7 +47,7 @@ void _showOverlay(BuildContext context, String plantContext) {
           final double bottomPadding = fabSize.height + 10 + keyboardHeight;
           const double horizontalPadding = 15.0; 
           final double relativeTailCenterX =
-              (fabPosition.dx + fabSize.width / 2); // - horizontalPadding; 
+              (fabPosition.dx + fabSize.width / 2); // - horizontalPadding; // Adjusted for padding
 
           return Stack(
             children: [
@@ -87,7 +83,7 @@ void _showOverlay(BuildContext context, String plantContext) {
             ],
           );
        } catch (e, s) { // Catch errors during build
-           print("Error building OverlayEntry content: $e\n$s"); // <-- Debug Error Catching
+           print("Error building OverlayEntry content: $e\n$s"); // <-- Debug Error Catching 
            // Return a simple error widget instead
            return Positioned(top: 100, left: 50, child: Material(child: Text("Error building overlay: $e")));
        }
@@ -200,13 +196,13 @@ void _showOverlay(BuildContext context, String plantContext) {
         final Timestamp? lastWateredTs = plant?['last_watered'] as Timestamp?;
         final Timestamp? diagnosisTs =
             plant?['diagnosisTimestamp'] as Timestamp?;
-        final Timestamp? createdAtTs = plant?['created_at'] as Timestamp?;
+        // final Timestamp? createdAtTs = plant?['created_at'] as Timestamp?;
 
         final String lastWateredStr = _formatTimestamp(lastWateredTs);
         final String diagnosisDateStr =
             _formatTimestamp(diagnosisTs, placeholder: 'N/A');
-        final String addedDateStr =
-            _formatTimestamp(createdAtTs, placeholder: 'N/A');
+        // final String addedDateStr =
+        //     _formatTimestamp(createdAtTs, placeholder: 'N/A');
         final int frequencyInDays = _parseFrequency(waterFreq);
         final DateTime lastWateredDate = lastWateredTs!.toDate();
         final DateTime nextDueDate =
@@ -498,7 +494,6 @@ Sunlight: ${plant['sunlight'] ?? 'N/A'}""";
                           plantProvider.isDeleting
                               ? null
                               : () {
-                                  // ** CHANGE: Pass both name and details **
                                   Navigator.pushNamed(
                                     context,
                                     '/diseaseTreatment',
@@ -526,8 +521,7 @@ Sunlight: ${plant['sunlight'] ?? 'N/A'}""";
                                   final bool? confirmed =
                                       await _showDeleteConfirmationDialog(
                                           context, plantName);
-                                  if (confirmed == true && plantId != null) {
-                                    // Show immediate feedback (optional)
+                                  if (confirmed == true && plantId != null) {                                    
                                     ScaffoldMessenger.of(context)
                                         .showSnackBar(SnackBar(
                                       content: Text('Deleting "$plantName"...'),

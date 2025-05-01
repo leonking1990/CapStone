@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:plantcareai/core/services/prediction_api.dart'; //
+import 'package:plantcareai/core/services/prediction_api.dart';
 
 class ScanPlantPage extends StatefulWidget {
   const ScanPlantPage({super.key});
@@ -21,7 +21,7 @@ class _ScanPlantPageState extends State<ScanPlantPage> {
   // Arguments received from previous page (e.g., PlantProfilePage)
   bool _isUpdate = false;
   String? _plantId;
-  String? _plantNameForContext; // Name for context (e.g., title)
+  String? _plantNameForContext; // Name for context
 
   @override
   void didChangeDependencies() {
@@ -87,7 +87,7 @@ class _ScanPlantPageState extends State<ScanPlantPage> {
              Navigator.pushNamed(context, '/prediction', arguments: {
                'plantData': plantData,
                'plantImage': FileImage(_imageFile!), // Pass FileImage for display
-               // ** Pass context arguments for update logic **
+               
                'isUpdate': _isUpdate,
                'plantId': _plantId,
              });
@@ -175,13 +175,13 @@ class _ScanPlantPageState extends State<ScanPlantPage> {
     );
   }
 
-  // --- (Widget _buildImagePreview() - unchanged) ---
-   Widget _buildImagePreview() { /* ... No changes needed ... */
+ 
+   Widget _buildImagePreview() { 
        return AnimatedContainer( duration: const Duration(milliseconds: 300), curve: Curves.easeInOut, width: double.infinity, height: 250, decoration: BoxDecoration( borderRadius: BorderRadius.circular(15), color: _imageFile != null ? Colors.transparent : Theme.of(context).colorScheme.surfaceVariant, boxShadow: [ if (_imageFile != null) BoxShadow( color: Colors.black.withOpacity(0.1), blurRadius: 8, spreadRadius: 1,),],), child: _imageFile != null ? ClipRRect( borderRadius: BorderRadius.circular(15), child: Image.file(_imageFile!, fit: BoxFit.cover),) : Column( mainAxisAlignment: MainAxisAlignment.center, children: [ Icon(Icons.image_search, size: 80, color: Theme.of(context).textTheme.bodySmall?.color), const SizedBox(height: 10), Text( 'Select or capture image', style: TextStyle( color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 16,),),],),);
    }
 
 
-  // --- (Widget _buildActionButtons() - Add check for _isAnalyzing) ---
+  
   Widget _buildActionButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -209,7 +209,7 @@ class _ScanPlantPageState extends State<ScanPlantPage> {
     );
   }
 
-  // --- (Widget _buildAnalyzeButton() - Add loading state) ---
+  
   Widget _buildAnalyzeButton() {
     return SizedBox( // Wrap in SizedBox to control height easily
       width: double.infinity,
@@ -226,7 +226,7 @@ class _ScanPlantPageState extends State<ScanPlantPage> {
     );
   }
 
-  // --- (Widget _buildButton() - Add loading indicator option) ---
+ 
   Widget _buildButton({
     required IconData icon,
     required String label,

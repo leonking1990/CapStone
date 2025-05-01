@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
+// import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plantcareai/core/services/gemini_api.dart';
-import 'package:plantcareai/features/chat/models/chat_message.dart'; // Import the public ChatMessage model
+import 'package:plantcareai/features/chat/models/chat_message.dart'; 
 
 class ChatPopupWidget extends StatefulWidget {
   final String? initialContext; // Accept initial context
@@ -63,7 +63,7 @@ class _ChatPopupWidgetState extends State<ChatPopupWidget> {
   Future<void> _saveMessages() async {
      try {
         final prefs = await SharedPreferences.getInstance();
-        // Limit history size before saving (optional but recommended)
+        // Limit history size before saving
         const int maxSavedHistory = 50; // Save max 50 messages
         final messagesToSave = (_messages.length <= maxSavedHistory)
             ? _messages
@@ -96,10 +96,9 @@ class _ChatPopupWidgetState extends State<ChatPopupWidget> {
      // Clear messages from state and add default greeting
      setState(() {
        _messages.clear();
-       // Add back greeting or context message if applicable
+       
        if (_chatContext != null && _chatContext!.isNotEmpty) {
-          // Maybe show context persistently? Or just a generic greeting after clear?
-          // Let's stick to a generic greeting after clearing.
+          
           _messages.insert(0, ChatMessage(text: "History cleared. How can I help?", isUser: false, id: 'cleared_msg'));
        } else {
           _messages.insert(0, ChatMessage(text: "Hi! How can I help?", isUser: false, id: 'greeting_msg'));

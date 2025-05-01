@@ -14,16 +14,16 @@ class PlantProvider extends ChangeNotifier {
   bool get isDeleting => _isDeleting;
   String? get error => _error;
 
-  // --- fetchPlants (no changes needed) ---
-   Future<void> fetchPlants() async { /* ... existing code ... */
+  // --- fetchPlants ---
+   Future<void> fetchPlants() async { 
        if (_isLoading) return; _isLoading = true; _error = null; notifyListeners();
        try { _plants = await allPlants(); _error = null;} //
        catch (e) { if (kDebugMode) print("Error fetching plants: $e"); _error = "Failed to load plants."; _plants = [];}
        finally { _isLoading = false; notifyListeners();}
    }
 
-  // --- addPlantLocally (no changes needed) ---
-   void addPlantLocally(Map<String, dynamic> plantDataMap, String? imageUrl, String plantId) { /* ... existing code ... */
+  // --- addPlantLocally ---
+   void addPlantLocally(Map<String, dynamic> plantDataMap, String? imageUrl, String plantId) { 
        plantDataMap['plantId'] = plantId; plantDataMap['image'] = imageUrl ?? 'N/A';
        plantDataMap.putIfAbsent('last_watered', () => Timestamp.now());
        if (plantDataMap['healthStatus']?.toLowerCase() == 'unhealthy' && plantDataMap['diagnosisTimestamp'] == null) { plantDataMap['diagnosisTimestamp'] = Timestamp.now();}

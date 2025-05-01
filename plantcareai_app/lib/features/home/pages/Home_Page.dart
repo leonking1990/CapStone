@@ -114,10 +114,10 @@ class _HomePageState extends State<HomePage> {
     final overlay = Overlay.of(context);
     // Get the RenderBox of the FAB using its GlobalKey
     final RenderBox? fabRenderBox = _fabKey.currentContext?.findRenderObject() as RenderBox?;
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    String welcomeName = currentUser?.displayName ?? 'Guest'; 
+    // User? currentUser = FirebaseAuth.instance.currentUser;
+    // String welcomeName = currentUser?.displayName ?? 'Guest'; 
 
-    if (overlay == null || fabRenderBox == null) {
+    if (fabRenderBox == null) {
       print("Error: Could not find Overlay or FAB RenderBox.");
       return;
     }
@@ -132,7 +132,7 @@ class _HomePageState extends State<HomePage> {
         final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
         // Calculate position for the chat popup (e.g., above the FAB)
         // Adjust these calculations as needed for desired placement & padding
-        final double rightPadding = fabSize.width / 2; // Align right edge roughly with FAB center
+        // final double rightPadding = fabSize.width / 2; // Align right edge roughly with FAB center
         final double bottomPadding = fabSize.height + 10; // Place 10px above the FAB
         const double horizontalPadding = 15.0; 
           final double relativeTailCenterX =
@@ -299,6 +299,8 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pushNamed(context, '/myPlants');
               },
             ),
+            // note to future stevie: add a calendar page
+            // to show watering schedule and other tasks
             // ListTile(
             //   leading: const Icon(Icons.calendar_today),
             //   title: const Text('Calendar'),
@@ -399,11 +401,7 @@ class _HomePageState extends State<HomePage> {
           key: _fabKey, // Assign key to get position later
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          // mini: _isOverlayVisible ? true : false, // Make it mini when overlay is shown
-          // Change icon based on overlay visibility (optional)
-          child: Icon(_isOverlayVisible ? Icons.close : Icons.chat_bubble_outline),
-          tooltip: _isOverlayVisible ? 'Close Chat' : 'Chat Assistant',
-          
+          tooltip: _isOverlayVisible ? 'Close Chat' : 'Chat Assistant',          
           onPressed: () {
             // Toggle the overlay's visibility
             if (_isOverlayVisible) {
@@ -412,6 +410,9 @@ class _HomePageState extends State<HomePage> {
               _showOverlay(context);
             }
           },
+          // mini: _isOverlayVisible ? true : false, // Make it mini when overlay is shown
+          // Change icon based on overlay visibility
+          child: Icon(_isOverlayVisible ? Icons.close : Icons.chat_bubble_outline),
         ),
       ),
     );

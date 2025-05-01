@@ -14,7 +14,7 @@ class _ChatBoxScreenState extends State<ChatBoxScreen> {
   final TextEditingController _controller = TextEditingController();
   // Messages list: Newest messages will be at index 0
   final List<_ChatMessage> _messages = [];
-  final GeminiApi _geminiApi = GeminiApi(); // Assuming GeminiApi() is correct instantiation
+  final GeminiApi _geminiApi = GeminiApi(); // create an instance of GeminiApi
   bool _isLoading = false;
   String? _chatContext; // For optional context passing
   StreamSubscription? _streamSubscription;
@@ -24,7 +24,7 @@ class _ChatBoxScreenState extends State<ChatBoxScreen> {
   @override
   void initState() {
     super.initState();
-    // You could potentially add an initial greeting message from the bot here
+    // Initialize the chat with a welcome message
     _messages.insert(0, _ChatMessage(text: "Hello! How can I help you with PlantCareAI?", isUser: false));
   }
 
@@ -37,7 +37,7 @@ class _ChatBoxScreenState extends State<ChatBoxScreen> {
        final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
        setState(() { // Use setState if you want to potentially display the context
          _chatContext = args?['context'] as String?;
-         // Optional: Add context as a message for debugging/visibility
+         //  Add context as a message for debugging/visibility
          // if (_chatContext != null && _messages.isEmpty) {
          //   _messages.insert(0, _ChatMessage(text: "Context: $_chatContext", isUser: false));
          // }
@@ -88,7 +88,7 @@ class _ChatBoxScreenState extends State<ChatBoxScreen> {
                  // Update the text of the existing message object
                  _messages[index] = _messages[index].copyWith(text: buffer.toString());
                }
-               // NOTE: This rebuilds the list view on every chunk.
+               // Note to future Stevie: This section is to rebuilds the list view on every chunk.
                // For very rapid streams, performance optimization might be needed
                // (e.g., updating only the specific Text widget state).
             });
@@ -133,7 +133,7 @@ class _ChatBoxScreenState extends State<ChatBoxScreen> {
           // --- End Handle Completion ---
         },
         cancelOnError: true, // Automatically cancel subscription on error
-      ); // Current implementation without context
+      );
     } catch (e) {
       // Display the error message directly in the chat
        if (mounted) {
@@ -191,13 +191,14 @@ class _ChatBoxScreenState extends State<ChatBoxScreen> {
                  // Check if the message is an error message to style differently
                 bool isErrorMessage = msg.text.startsWith("Error:") && !msg.isUser;
 
-                bool isStreaming = msg.id == _streamingMessageId && _isLoading;
-                 String displayText = msg.text;
-                 if (isStreaming && msg.text.isEmpty) {
-                   displayText = "Typing..."; // Placeholder while waiting for first chunk
-                 } else if (isStreaming) {
-                    displayText += '...'; // Add ellipsis while streaming
-                 }
+                // commented out for now, but can be used for streaming messages
+                // bool isStreaming = msg.id == _streamingMessageId && _isLoading;
+                //  String displayText = msg.text;
+                //  if (isStreaming && msg.text.isEmpty) {
+                //    displayText = "Typing..."; // Placeholder while waiting for first chunk
+                //  } else if (isStreaming) {
+                //     displayText += '...'; // Add ellipsis while streaming
+                //  }
 
                 return Align(
                   // Align user messages to the right, bot messages to the left
@@ -245,7 +246,7 @@ class _ChatBoxScreenState extends State<ChatBoxScreen> {
                     // Apply theming to TextField as well if needed via InputDecorationTheme
                     decoration: const InputDecoration(
                       hintText: 'Ask about plant care...', // Updated hint text
-                      // border: OutlineInputBorder(...), // Example theming
+                      // border: OutlineInputBorder(...),
                     ),
                     // Send message when user presses Enter/Done
                     onSubmitted: (_) => _sendMessage(),
