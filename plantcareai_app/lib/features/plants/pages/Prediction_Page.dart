@@ -55,10 +55,10 @@ class _PredictionPageState extends State<PredictionPage> {
 
 
     try {
-      // 1. Upload new image (common to both add and update)
+      // Upload new image
       String? newImageUrl = await uploadPlantImage(widget.plantImage); //
 
-      // 2. Decide Action: Update existing or Add new
+      // Decide Action: Update existing or Add new
       if (widget.isUpdate && widget.plantId != null) {
           // --- UPDATE Existing Plant ---
           Map<String, dynamic> updateData = {
@@ -103,9 +103,9 @@ class _PredictionPageState extends State<PredictionPage> {
       } else {
           // --- ADD New Plant ---
           String? generatedPlantId = await addPlantData( //
-             widget.plantData, // Original data map
-             newImageUrl,      // URL from upload
-             waterFrequency,   // Extracted fields...
+             widget.plantData, 
+             newImageUrl,      
+             waterFrequency,   
              healthStatus,
              diseaseName,
              diseaseDetails,
@@ -151,7 +151,7 @@ class _PredictionPageState extends State<PredictionPage> {
            if (kDebugMode) print("New plant $generatedPlantId added.");
       }
 
-      // 3. Navigate after success (common to add and update)
+      // Navigate after success (common to add and update)
       if (mounted) {
         // Go back to profile page if it was an update, else go to MyPlants
          if (widget.isUpdate) {
@@ -228,7 +228,7 @@ class _PredictionPageState extends State<PredictionPage> {
                 Container( height: 200, width: double.infinity, decoration: BoxDecoration( borderRadius: BorderRadius.circular(16), image: DecorationImage( image: widget.plantImage, fit: BoxFit.cover,), boxShadow: [ BoxShadow( color: Colors.black.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2),),],),),
                const SizedBox(height: 20),
 
-               // --- Prediction Results section (display only) ---
+               // --- Prediction Results section ---
                Container(
                  width: double.infinity, padding: const EdgeInsets.all(16),
                  decoration: BoxDecoration( color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [ BoxShadow( color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 1),),],),
@@ -290,15 +290,15 @@ class _PredictionPageState extends State<PredictionPage> {
 
 
 // Helper to get arguments safely in build or initState/didChangeDependencies
-PredictionPageArguments _getArguments(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    return PredictionPageArguments(
-        plantData: args?['plantData'], // Already required by constructor?
-        plantImage: args?['plantImage'], // Already required?
-        isUpdate: args?['isUpdate'] ?? false,
-        plantId: args?['plantId']
-    );
-}
+// PredictionPageArguments _getArguments(BuildContext context) {
+//     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+//     return PredictionPageArguments(
+//         plantData: args?['plantData'], // Already required by constructor?
+//         plantImage: args?['plantImage'], // Already required?
+//         isUpdate: args?['isUpdate'] ?? false,
+//         plantId: args?['plantId']
+//     );
+// }
 
 // Simple class to hold arguments if needed (alternative to passing via constructor)
 class PredictionPageArguments {

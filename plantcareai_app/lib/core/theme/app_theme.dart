@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 
+// I left a ton of comments in this file to help you understand the code better (I beraly remember it myself)
+// Define a class to hold the app's theme data
+// This class can be used to manage both light and dark themes in the app
+// It can be extended in the future to include more themes or styles
+// The class is static to avoid instantiation and to provide a single point of access
+// to the theme data throughout the app
+
+
 class AppThemes {
   // Define common border radius
   static final _inputBorderRadius = BorderRadius.circular(12.0);
@@ -84,7 +92,7 @@ class AppThemes {
      colorScheme: ColorScheme.fromSeed(
         seedColor: Colors.green, // Base color
         brightness: Brightness.dark,
-        // Define primary/secondary if needed
+        // Define primary/secondary mite need to be adjusted for dark mode
         // primary: Colors.green[700],
         // secondary: Colors.redAccent[100],
      ),

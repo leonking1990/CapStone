@@ -381,7 +381,6 @@ Future<void> deleteUserPlant(String plantId, String? imageUrl) async {
     throw Exception("User not authenticated");
   }
 
-  // 1. Delete Firestore Document
   DocumentReference plantDocRef = FirebaseFirestore.instance
       .collection('users')
       .doc(user.uid)
