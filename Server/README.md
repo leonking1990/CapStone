@@ -14,6 +14,7 @@ This directory contains the Python FastAPI application that serves as the backen
 * **python-dotenv:** For managing environment variables (like API keys) via a `.env` file.
 
 ## Directory Structure
+```
 Server/
 ├── server_main.py      # Main FastAPI application, endpoint definitions, startup/shutdown logic
 ├── perenual_client.py  # Client class for Perenual API interaction with disk caching
@@ -30,7 +31,7 @@ Server/
 ├── cache/              # --> Automatically created by perenual_client.py for caching
 ├── .env                # REQUIRED: Create this file for the Perenual API Key
 └── serverTest/         # Contains basic endpoint test scripts (e.g., test_upload.py)
-
+```
 ## Setup
 
 1.  **Navigate to this Directory:**
