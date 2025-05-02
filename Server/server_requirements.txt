@@ -1,0 +1,16 @@
+# Web Framework & Server
+fastapi
+uvicorn[standard] # Includes python-multipart for file uploads
+
+# Machine Learning Model
+tensorflow        # For loading and running Keras models
+
+# Utilities & Dependencies
+numpy             # Required by TensorFlow, Pillow, etc.
+Pillow            # For image loading and preprocessing
+python-dotenv     # For loading environment variables (.env file)
+httpx             # For making asynchronous HTTP requests (Perenual API)
+
+# Explicitly add python-multipart just in case (though included in uvicorn[standard])
+# good for clarity if file uploads are critical
+python-multipart
