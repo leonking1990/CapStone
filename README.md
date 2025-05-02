@@ -124,7 +124,7 @@ CapStone/
     * The structure should match what `server_main.py` expects:
         * `species_map.json`: `{"0": "name", "1": "name", ...}`
         * `disease_map.json`: `{"0": "name", "1": "name", ...}`
-    *For more detailed backend configuration, testing, and API documentation, please see [Server/README.md](Server/README.md).*
+* For more detailed backend configuration, testing, and API documentation, please see [Server/README.md](Server/README.md).*
 
 ### Flutter App Setup (`plantcareai_app/`)
 
