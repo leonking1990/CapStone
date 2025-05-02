@@ -122,8 +122,8 @@ CapStone/
     * Ensure your `species_map.json` and `disease_map.json` files are present in the `Server/mappings/` directory.
     * The keys in these files should be **strings representing the numerical index** output by your corresponding classifier models (e.g., `"0"`, `"1"`, ...).
     * The structure should match what `server_main.py` expects:
-        * `species_map.json`: `{"0": {"name": "...", "family": "...", "genus": "..."}, ...}`
-        * `disease_map.json`: `{"0": {"name": "...", "details": "..."}, ...}`
+        * `species_map.json`: `{"0": "name"`
+        * `disease_map.json`: `{"0": "name"`
 *For more detailed backend configuration, testing, and API documentation, please see [Server/README.md](Server/README.md).*
 
 ### Flutter App Setup (`plantcareai_app/`)
