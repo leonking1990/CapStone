@@ -1,0 +1,19 @@
+# Core Machine Learning Framework
+tensorflow         # Includes Keras for model building, training, evaluation
+
+# Numerical & Data Handling
+numpy              # Foundational package for numerical computing
+pandas             # Data analysis & manipulation (used in data/analysis scripts)
+
+# Machine Learning Utilities & Evaluation
+scikit-learn       # For metrics (e.g., confusion matrix) and data splitting
+
+# Image Processing
+Pillow             # For loading/manipulating images in helper scripts
+
+# Data Visualization
+matplotlib         # Plotting library for graphs (e.g., training history)
+seaborn            # Statistical data visualization based on matplotlib
+
+# Optional Dependencies (Uncomment if used in parts of your workflow not analyzed):
+# opencv-python    # For advanced image processing/augmentation if needed

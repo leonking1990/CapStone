@@ -1,4 +1,6 @@
-
 # Folders to ignore
 __pycache__
 .vscode
+.env
+Server/models
+Training_program/logs/
