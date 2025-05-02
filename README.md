@@ -54,7 +54,7 @@ CapStone/
 │   ├── server_main.py    # Main FastAPI application script
 │   ├── perenual_client.py # Client for Perenual API with disk caching
 │   ├── server_requirements.txt # Python dependencies
-│   ├── models/           # &lt;&lt;&lt;&lt;&lt;&lt; Place trained .keras models here >>>>>>
+│   ├── models/           # Place trained .keras models here >>>>>>
 │   │   ├── plant_classifier.keras   (REQUIRED)
 │   │   ├── health_classifier.keras  (REQUIRED)
 │   │   ├── plant_detector.keras   (REQUIRED)
@@ -62,8 +62,8 @@ CapStone/
 │   ├── mappings/         # JSON mapping files for model outputs
 │   │   ├── species_map.json         (REQUIRED)
 │   │   └── disease_map.json         (REQUIRED)
-│   ├── cache/            # &lt;&lt;&lt;&lt; Created automatically by perenual_client.py >>>>
-│   ├── .env              # &lt;&lt;&lt;&lt;&lt;&lt; Create this file for Perenual API Key >>>>>>
+│   ├── cache/            # Created automatically by perenual_client.py >>>>
+│   ├── .env              # Create this file for Perenual API Key >>>>>>
 │   └── serverTest/       # Basic server endpoint tests (test_upload.py)
 ├── Training_program/     # Scripts & resources for ML model training
 │   ├── CNNModel.py       # Model definition class
