@@ -124,7 +124,7 @@ CapStone/
     * The structure should match what `server_main.py` expects:
         * `species_map.json`: `{"0": "name", "1": "name", ...}`
         * `disease_map.json`: `{"0": "name", "1": "name", ...}`
-* For more detailed backend configuration, testing, and API documentation, please see [Server/README.md](Server/README.md).*
+*For more detailed backend configuration, testing, and API documentation, please see [Server/README.md](Server/README.md).*
 
 ### Flutter App Setup (`plantcareai_app/`)
 
@@ -172,6 +172,8 @@ CapStone/
         flutter run
         ```
     * The app should build and launch. Log in/Sign up and navigate to the plant scanning/prediction feature.
+      
+*For more detailed Flutter setup, build instructions, and architecture notes, please see [plantcareai_app/README.md](plantcareai_app/README.md).*
 
 ## API Endpoint (`/predict`)
 
@@ -213,3 +215,5 @@ The `Training_program/` directory contains Python scripts (`main.py`, `CNNModel.
 * **Firebase Setup:** The Flutter app **will not function correctly** without proper Firebase project setup and the inclusion of the `google-services.json` / `GoogleService-Info.plist` configuration files in the `plantcareai_app/` directory structure.
 * **Model Accuracy:** The accuracy of predictions depends entirely on the quality and quantity of data used to train the models in the `Training_program/`.
 * **Perenual Matching:** The backend uses the *first* result from Perenual's name search. This might not always be the correct species for ambiguous names.
+
+*For detailed instructions on data preparation, training execution, and model evaluation, please see [Training_program/README.md](Training_program/README.md).*
