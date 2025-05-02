@@ -42,6 +42,7 @@ Users can take or upload a picture of a plant using the Flutter app. The image i
     * Firebase (Authentication, Firestore Database, Cloud Storage for user plant images)
 
 ## Project Structure
+```
 CapStone/
 ├── plantcareai_app/      # Flutter Application Code
 │   ├── lib/              # Main Dart code
@@ -69,6 +70,7 @@ CapStone/
 │   ├── main.py           # Main training script entry point
 │   ├── ... (Data processing scripts, logs, etc.)
 └── README.md             # This file
+```
 ## Setup & Installation
 
 ### Prerequisites

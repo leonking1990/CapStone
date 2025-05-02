@@ -30,7 +30,7 @@ The Flutter app allows users to:
 * *(Check `pubspec.yaml` for a complete list)*
 
 ## Directory Structure (`lib/` Focus)
-
+```
 The core application logic resides within the `lib/` directory:
 lib/
 ├── core/
@@ -46,6 +46,7 @@ lib/
 │   └── welcome/    # Initial welcome/onboarding page
 ├── shared/           # Common widgets used across features (e.g., BaseScaffold, Popups)
 └── main.dart         # Main application entry point, initializes Firebase, sets up providers & routes
+```
 
 ## Setup
 
