@@ -20,7 +20,7 @@ class _MyPlantsPageState extends State<MyPlantsPage> {
     // Use WidgetsBinding to ensure context is available safely after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Use listen: false because we're calling a method, not listening for changes here
-      Provider.of<PlantProvider>(context, listen: false).fetchPlants();
+      //Provider.of<PlantProvider>(context, listen: false).fetchPlants();
     });
   }
 
@@ -59,6 +59,12 @@ class _MyPlantsPageState extends State<MyPlantsPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<PlantProvider>(
         builder: (context, plantProvider, child) {
+
+          if (kDebugMode) {
+    print("[MyPlantsPage] CONSUMER BUILDER called. Provider plant count: ${plantProvider.plants.length}");
+    // Optionally print IDs:
+    // plantProvider.plants.forEach((p) => print("Plant ID in Consumer: ${p['plantId']}"));
+  }
           // Show loading indicator
           if (plantProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -107,15 +113,25 @@ class _MyPlantsPageState extends State<MyPlantsPage> {
                 final plant = plants[index];
                 return PlantCard(
                   plant: plant,
-                  onTap: () {
-                    // Pass the navigation logic as a callback
+                  onTap: () async { // *** MODIFICATION: Make onTap async ***
                     final String? actualPlantId = plant['plantId'] as String?;
                     if (actualPlantId != null && actualPlantId.isNotEmpty) {
-                      Navigator.pushNamed(
+                      // *** MODIFICATION: await the navigation and check the result ***
+                      final result = await Navigator.pushNamed(
                         context,
                         '/pProfile',
                         arguments: actualPlantId,
                       );
+
+                      // If a plant was deleted, PlantProvider already updated its list
+                      // and called notifyListeners. Calling setState here ensures
+                      // MyPlantsPage rebuilds and the Consumer picks up the latest list.
+                      if (result == 'deleted' && mounted) {
+                        if (kDebugMode) {
+                          print("[MyPlantsPage] Plant deletion confirmed, calling setState to refresh UI.");
+                        }
+                        setState(() {});
+                      }
                     } else {
                       // Show a message if plantId is somehow missing from the data
                       if (kDebugMode) {

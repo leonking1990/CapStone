@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +49,7 @@ class MyApp extends StatelessWidget {
         }
         return MaterialApp(
           title: 'PlantCareAi',
+          debugShowCheckedModeBanner: false,
           theme: themeProvider.theme, // Use the theme from ThemeProvider
           // darkTheme: AppThemes.darkTheme,
           // themeMode: themeProvider.themeMode,
@@ -68,11 +71,13 @@ class MyApp extends StatelessWidget {
               final args = ModalRoute.of(context)?.settings.arguments
                   as Map<String, dynamic>?;
 
-              // Basic validation for essential arguments
+              // Validate essential arguments
               if (args == null ||
-                  args['plantData'] == null ||
-                  args['plantImage'] == null) {
-                // Handle error: Navigate back or show an error page
+                      args['plantData'] == null ||
+                      // args['plantImage'] == null || // plantImage is for display only, maybe less critical?
+                      args['imageFile'] ==
+                          null // *** ADDED: Check for imageFile ***
+                  ) {
                 if (kDebugMode) {
                   print(
                       "Error: Missing required arguments for /prediction route.");
@@ -80,24 +85,28 @@ class MyApp extends StatelessWidget {
                 return Scaffold(
                     appBar: AppBar(title: const Text("Error")),
                     body: const Center(
-                        child: Text("Could not load prediction data.")));
+                        child: Text(
+                            "Could not load prediction data or image file.")));
               }
 
-              // Extract arguments for the constructor
+              // Extract arguments safely
               final plantData = args['plantData'];
-              final plantImage = args['plantImage'];
-              final isUpdate = args['isUpdate'] as bool? ??
-                  false; // Safely get isUpdate flag
-              final plantId = args['plantId']
-                  as String?; // Safely get plantId (can be null)
+              // Provide a fallback for plantImage if needed, although ScanPage should always pass it
+              final plantImage = args['plantImage'] as ImageProvider? ??
+                  const AssetImage(
+                      'assets/placeholder.png'); // Example fallback
+              final imageFile = args['imageFile']
+                  as File; // *** ADDED: Extract the File object ***
+              final isUpdate = args['isUpdate'] as bool? ?? false;
+              final plantId = args['plantId'] as String?;
 
-              // Pass arguments to the constructor
+              // Pass arguments to the constructor, including imageFile
               return PredictionPage(
-                //
                 plantData: plantData,
                 plantImage: plantImage,
-                isUpdate: isUpdate, // Pass the flag
-                plantId: plantId, // Pass the ID
+                imageFile: imageFile, // *** ADDED: Pass the file object ***
+                isUpdate: isUpdate,
+                plantId: plantId,
               );
             },
           },

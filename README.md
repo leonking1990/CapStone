@@ -1,4 +1,7 @@
 # PlantCareAI: Plant Species & Health Identification
+Hello Professor Hill click the goto link (or go to bottom) for instrctons how to to run training program:
+
+- [Grading](#Note-for-Matt-Hill)
 
 This project combines a Flutter mobile application with a Python backend powered by Machine Learning to identify plant species, diagnose potential health issues, and provide relevant care information.
 
@@ -217,4 +220,21 @@ The `Training_program/` directory contains Python scripts (`main.py`, `CNNModel.
 * **Model Accuracy:** The accuracy of predictions depends entirely on the quality and quantity of data used to train the models in the `Training_program/`.
 * **Perenual Matching:** The backend uses the *first* result from Perenual's name search. This might not always be the correct species for ambiguous names.
 
+
+
+
+## Note for Matt Hill
+As agreed, I added a mode for easy grading. Follow the instructions below:
+1. CD into `Training_program`
+2. run:
+  ```bash 
+  pip install -r requirements.txt
+  ```
+3. run:
+  ```bash
+  python main.py
+  ```
+4. In the program, enter `yes` to start test mode, then follow the remaining prompts.
+
 *For detailed instructions on data preparation, training execution, and model evaluation, please see [Training_program/README.md](Training_program/README.md).*
+

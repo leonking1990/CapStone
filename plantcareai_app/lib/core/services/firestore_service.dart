@@ -9,9 +9,13 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as path;
+import 'package:image/image.dart' as img;
 import 'package:uuid/uuid.dart';
 
 String? _generateThumbnailUrl(String? originalUrl, String sizeSuffix) {
+  if (kDebugMode) {
+    print("[_generateThumbnailUrl] Input URL: $originalUrl"); // Log input
+  }
   if (originalUrl == null ||
       !originalUrl.contains('.') ||
       originalUrl == 'N/A') {
@@ -27,18 +31,94 @@ String? _generateThumbnailUrl(String? originalUrl, String sizeSuffix) {
     String baseName = originalUrl.substring(0, dotIndex);
     String extension = originalUrl.substring(
         dotIndex, queryIndex != -1 ? queryIndex : originalUrl.length);
-    String queryParams =
-        queryIndex != -1 ? originalUrl.substring(queryIndex) : '';
-
+    
     // Construct the thumbnail URL
     // Assuming the suffix is like "_200x200"
-    return '$baseName$sizeSuffix$extension$queryParams';
+    final thumbnailUrl = '$baseName$sizeSuffix$extension';
+    if (kDebugMode) {
+      print("[_generateThumbnailUrl] Generated URL: $thumbnailUrl"); // Log output
+    }
+    return thumbnailUrl;
   } catch (e) {
     if (kDebugMode) {
-      print("Error generating thumbnail URL for $originalUrl: $e");
+      print("[_generateThumbnailUrl] Error generating thumbnail URL for $originalUrl: $e");
     }
     return null; // Return null or original on error
   }
+}
+
+// --- Upload Original and Thumbnail Image ---
+// Takes a File, resizes it, uploads both, returns clean URLs for original and thumbnail
+Future<Map<String, String?>> uploadOriginalAndThumbnail(File imageFile) async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    throw Exception("User not authenticated for image upload.");
+  }
+
+  String? originalUrl;
+  String? thumbnailUrl;
+  // Generate unique base name using UUID
+  final String fileId = const Uuid().v4();
+  // Get original extension (e.g., ".png", ".jpg")
+  final String originalExtension = path.extension(imageFile.path);
+  // Define filenames
+  final String originalFileName = 'plant_original_${fileId}$originalExtension';
+  final String thumbnailFileName = 'plant_thumb_${fileId}.jpg'; // Standardize thumbnail to JPG
+
+  try {
+    // 1. Read and Decode Image File
+    final imageBytes = await imageFile.readAsBytes();
+    img.Image? image = img.decodeImage(imageBytes);
+    if (image == null) {
+      throw Exception("Failed to decode image file.");
+    }
+
+    // 2. Create Thumbnail
+    // Resize (e.g., 400px width, maintaining aspect ratio). Adjust width as needed.
+    img.Image thumbnail = img.copyResize(image, width: 400);
+    // Encode thumbnail as JPG bytes (adjust quality 0-100)
+    List<int> thumbnailBytes = img.encodeJpg(thumbnail, quality: 85);
+
+    // 3. Get Storage References
+    String basePath = 'users/${user.uid}/plants/images';
+    Reference storageRefOriginal = FirebaseStorage.instance.ref().child('$basePath/$originalFileName');
+    Reference storageRefThumbnail = FirebaseStorage.instance.ref().child('$basePath/$thumbnailFileName');
+
+    // 4. Upload Both Files (can run in parallel)
+    if (kDebugMode) print("Uploading original: $originalFileName");
+    UploadTask originalUploadTask = storageRefOriginal.putData(imageBytes, SettableMetadata(contentType: 'image/${originalExtension.substring(1)}')); // Use original bytes and determined content type
+
+    if (kDebugMode) print("Uploading thumbnail: $thumbnailFileName");
+    UploadTask thumbnailUploadTask = storageRefThumbnail.putData(Uint8List.fromList(thumbnailBytes), SettableMetadata(contentType: 'image/jpeg')); // JPG content type
+
+    // Wait for uploads to complete
+    TaskSnapshot originalSnapshot = await originalUploadTask;
+    TaskSnapshot thumbnailSnapshot = await thumbnailUploadTask;
+
+    // 5. Get Download URLs
+    String rawOriginalUrl = await originalSnapshot.ref.getDownloadURL();
+    String rawThumbnailUrl = await thumbnailSnapshot.ref.getDownloadURL();
+
+    // Remove tokens/query params to store clean URLs
+    originalUrl = rawOriginalUrl.contains('?') ? rawOriginalUrl.substring(0, rawOriginalUrl.indexOf('?')) : rawOriginalUrl;
+    thumbnailUrl = rawThumbnailUrl.contains('?') ? rawThumbnailUrl.substring(0, rawThumbnailUrl.indexOf('?')) : rawThumbnailUrl;
+
+    if (kDebugMode) {
+      print("Original Clean URL: $originalUrl");
+      print("Thumbnail Clean URL: $thumbnailUrl");
+    }
+
+  } catch (e) {
+    if (kDebugMode) print("Failed during image upload/resize: $e");
+    // Rethrow the error so the caller knows something went wrong
+    rethrow;
+  }
+
+  // Return map containing both clean URLs (or null if an error occurred)
+  return {
+    'originalUrl': originalUrl,
+    'thumbnailUrl': thumbnailUrl,
+  };
 }
 
 // --- addUserData ---
@@ -192,140 +272,202 @@ Future<void> updateLastWatered(String plantId) async {
 
 // --- addPlantData ---
 Future<String?> addPlantData(
-    dynamic data, // Original prediction data map from server/API
-    String? url, // Image URL
+    dynamic predictionData, // Data from your prediction model/API
+    File? imageFileToUpload, // *** CHANGED: Accept File? instead of String? url ***
     String waterFrequency,
     String healthStatus,
-    String? diseaseName, // Keep diseaseName reference
-    String? diseaseDetails, // <-- RE-ADD diseaseDetails parameter
+    String? diseaseName,
+    String? diseaseDetails,
     String? sunlight,
     String? cycle,
     String? description,
     String? customName,
-    int? speciesId) async {
-  CollectionReference users = FirebaseFirestore.instance.collection('users');
+    int? speciesId) async { // Keep other parameters
+
   User? user = FirebaseAuth.instance.currentUser;
   if (user == null) {
-    if (kDebugMode) print("User not logged in for addPlantData");
-    throw Exception("User not authenticated");
+      if (kDebugMode) print("User not logged in for addPlantData");
+      throw Exception("User not authenticated");
   }
+
+  String finalOriginalUrl = 'N/A'; // Default value
+  String finalThumbnailUrl = 'N/A'; // Default value
+
+  // --- Upload images IF a file is provided ---
+  if (imageFileToUpload != null) {
+     if (kDebugMode) print("[addPlantData] Image file provided, attempting upload...");
+     try {
+        // Call the new upload function which returns both URLs
+        final Map<String, String?> urls = await uploadOriginalAndThumbnail(imageFileToUpload);
+
+        // Assign URLs from the returned map, handle potential nulls
+        finalOriginalUrl = urls['originalUrl'] ?? 'N/A';
+        // Use original URL as fallback for thumbnail if thumbnail fails for some reason
+        finalThumbnailUrl = urls['thumbnailUrl'] ?? finalOriginalUrl;
+
+        if (kDebugMode) print("[addPlantData] Upload complete. Original: $finalOriginalUrl, Thumb: $finalThumbnailUrl");
+
+     } catch (e) {
+        if (kDebugMode) print("[addPlantData] Image upload failed: $e");
+        // Still proceed to save plant data, but URLs will be 'N/A'
+        // Alternatively, you could throw the error here to stop the process: throw Exception("Image upload failed: $e");
+     }
+  } else {
+      if (kDebugMode) print("[addPlantData] No image file provided, saving plant data without image URLs.");
+  }
+  // --- End image upload ---
+
+
+  // --- Prepare data for Firestore ---
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
   // Generate unique ID for the new plant document
-  DocumentReference plantDocRef =
-      users.doc(user.uid).collection('plants').doc();
+  DocumentReference plantDocRef = users.doc(user.uid).collection('plants').doc();
   String plantId = plantDocRef.id;
 
-  String? thumbnailUrl = _generateThumbnailUrl(url, "_200x200");
-
-  // Prepare the data map, including the re-added diseaseDetails
+  // Build the map to save, using the potentially updated URLs
   Map<String, dynamic> plantDocData = {
     'plantId': plantId, // Store the document ID within the document
     'species_id': speciesId, // Store the species ID from external source
     'created_at': FieldValue.serverTimestamp(),
     'last_updated': FieldValue.serverTimestamp(),
-    'image': url ?? 'N/A',
-    'imageThumbnailUrl': thumbnailUrl ?? url ?? 'N/A',
-    'name': customName ?? data?['name'] ?? 'My ${data?['species'] ?? 'Plant'}',
-    'species': data?['species'] ?? 'N/A',
-    'genus': data?['genus'] ?? 'N/A',
-    'family': data?['family'] ?? 'N/A',
+    'image': finalOriginalUrl, // Save the CLEAN original URL
+    'imageThumbnailUrl': finalThumbnailUrl, // Save the CLEAN thumbnail URL
+    'name': customName ?? predictionData?['name'] ?? 'My ${predictionData?['species'] ?? 'Plant'}',
+    'species': predictionData?['species'] ?? 'N/A',
+    'genus': predictionData?['genus'] ?? 'N/A',
+    'family': predictionData?['family'] ?? 'N/A',
     'water_frequency': waterFrequency,
     'sunlight': sunlight ?? 'N/A',
     'cycle': cycle ?? 'N/A',
     'description': description ?? 'N/A', // Plant description
     'healthStatus': healthStatus,
     'diseaseName': diseaseName, // Store the name reference
-    'diseaseDetails':
-        diseaseDetails, // <-- RE-ADD storage for description/treatment
+    'diseaseDetails': diseaseDetails,
     'last_watered': FieldValue.serverTimestamp(), // Initial watering timestamp
-    // Add diagnosis timestamp only if unhealthy and disease detected
-    if (healthStatus.toLowerCase() == 'unhealthy' &&
-        diseaseName != null &&
-        diseaseName.isNotEmpty)
+    if (healthStatus.toLowerCase() == 'unhealthy' && diseaseName != null && diseaseName.isNotEmpty)
       'diagnosisTimestamp': FieldValue.serverTimestamp(),
   };
 
   // Remove any fields that ended up being null to keep Firestore clean
   plantDocData.removeWhere((key, value) => value == null);
 
+  // --- Save data to Firestore ---
   try {
-    // Set the data for the new document reference
     await plantDocRef.set(plantDocData);
     if (kDebugMode) {
-      print("Plant Added/Updated with ID: $plantId, Disease Details included.");
+      print("Plant Added with ID: $plantId. Data saved to Firestore.");
     }
     return plantId; // Return the generated ID
   } catch (error) {
     if (kDebugMode) {
-      print("Failed to add/update plant ($plantId): $error");
+      print("Failed to add plant data to Firestore ($plantId): $error");
     }
+    // Consider deleting uploaded images if Firestore save fails? More complex cleanup.
     rethrow; // Rethrow error for handling in UI/Provider
   }
 }
 
 // for updating existing plant data ***
 Future<void> updatePlantData({
-  required String plantId, // ID of the plant document to update
-  String? imageUrl, // New image URL (if changed)
-  required String healthStatus, // Updated health status
-  String? diseaseName, // Updated disease name (could be null if now healthy)
-  String? diseaseDetails, // Updated details (could be null)
-  // Add any other fields that should be updated during a re-scan
+  required String plantId,
+  File? newImageFile, // *** CHANGED: Accept optional File object ***
+  required String healthStatus,
+  String? diseaseName,
+  String? diseaseDetails,
+  // Removed imageUrl String parameter
 }) async {
   User? user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    if (kDebugMode) print("User not logged in for updatePlantData");
-    throw Exception("User not authenticated");
-  }
+  if (user == null) throw Exception("User not authenticated");
 
-  // Reference the specific plant document
   DocumentReference plantDocRef = FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .collection('plants')
-      .doc(plantId);
+      .collection('users').doc(user.uid).collection('plants').doc(plantId);
 
-  // Prepare map of fields to update
+  // Start with data fields that are always updated
   Map<String, dynamic> dataToUpdate = {
     'healthStatus': healthStatus,
-    'diseaseName': diseaseName, // Will update to null if diseaseName is null
-    'diseaseDetails':
-        diseaseDetails, // Will update to null if diseaseDetails is null
+    'diseaseName': diseaseName, // Will be set to null if diseaseName is null
+    'diseaseDetails': diseaseDetails, // Will be set to null if diseaseDetails is null
     'last_updated': FieldValue.serverTimestamp(),
-    // Conditionally add diagnosis timestamp if now unhealthy with a disease
-    if (healthStatus.toLowerCase() == 'unhealthy' &&
-        diseaseName != null &&
-        diseaseName.isNotEmpty)
+    // Update diagnosis timestamp based on new health status
+    if (healthStatus.toLowerCase() == 'unhealthy' && diseaseName != null && diseaseName.isNotEmpty)
       'diagnosisTimestamp': FieldValue.serverTimestamp()
-    else // If now healthy or no disease, consider removing old diagnosis timestamp? Optional.
-      'diagnosisTimestamp':
-          FieldValue.delete(), // Example: Delete timestamp if healthy
-
-    // Only update image if a new URL is provided
-    if (imageUrl != null) ...{
-      'image': imageUrl,
-
-      'imageThumbnailUrl': _generateThumbnailUrl(imageUrl, "_200x200") ??
-          imageUrl, // Fallback to new original
-    }
+    else
+      'diagnosisTimestamp': FieldValue.delete(), // Remove timestamp if healthy or no disease
   };
 
-  // Remove null values before sending to Firestore's update method
-  // Note: FieldValue.delete() is handled correctly by update() and not removed here.
-  dataToUpdate.removeWhere((key, value) =>
-      value == null && key != 'diseaseName' && key != 'diseaseDetails');
-  // Explicitly handle setting diseaseName/Details to null if needed
+  // --- Handle Image Replacement if newImageFile is provided ---
+  if (newImageFile != null) {
+      if (kDebugMode) print("[updatePlantData] New image file provided for $plantId. Processing...");
+
+      // 1. Try to delete OLD images before uploading new ones
+      try {
+         DocumentSnapshot currentPlantDoc = await plantDocRef.get();
+         if (currentPlantDoc.exists) {
+            final currentData = currentPlantDoc.data() as Map<String, dynamic>?;
+            // Get clean URLs stored previously
+            final oldOriginalUrl = currentData?['image'] as String?;
+            final oldThumbnailUrl = currentData?['imageThumbnailUrl'] as String?;
+
+            // Attempt deletion (ignore errors, best effort)
+            if (oldOriginalUrl != null && oldOriginalUrl != 'N/A' && oldOriginalUrl.startsWith('https://firebasestorage')) {
+               try {
+                  if (kDebugMode) print("[updatePlantData] Attempting to delete old original: $oldOriginalUrl");
+                  await FirebaseStorage.instance.refFromURL(oldOriginalUrl).delete();
+               } catch (e) { if (kDebugMode) print("Ignoring error deleting old original: $e");}
+            }
+             if (oldThumbnailUrl != null && oldThumbnailUrl != 'N/A' && oldThumbnailUrl != oldOriginalUrl && oldThumbnailUrl.startsWith('https://firebasestorage')) {
+               try {
+                  if (kDebugMode) print("[updatePlantData] Attempting to delete old thumbnail: $oldThumbnailUrl");
+                  await FirebaseStorage.instance.refFromURL(oldThumbnailUrl).delete();
+               } catch (e) { if (kDebugMode) print("Ignoring error deleting old thumbnail: $e");}
+            }
+         }
+      } catch (e) {
+         if (kDebugMode) print("[updatePlantData] Error getting current doc / deleting old images: $e");
+         // Continue even if deletion fails
+      }
+
+      // 2. Upload NEW images (original and thumbnail)
+      try {
+        final urls = await uploadOriginalAndThumbnail(newImageFile); // Use the updated upload function
+
+        // Add new URLs to the update map (handle potential upload failures)
+        String? newOriginalUrl = urls['originalUrl'];
+        String? newThumbnailUrl = urls['thumbnailUrl'];
+
+        if (newOriginalUrl != null) {
+           dataToUpdate['image'] = newOriginalUrl;
+           // Fallback thumbnail to original if thumbnail upload failed but original succeeded
+           dataToUpdate['imageThumbnailUrl'] = newThumbnailUrl ?? newOriginalUrl;
+           if (kDebugMode) print("[updatePlantData] New images uploaded. Original: ${dataToUpdate['image']}, Thumb: ${dataToUpdate['imageThumbnailUrl']}");
+        } else {
+           // Handle case where even original upload failed
+           if (kDebugMode) print("[updatePlantData] Upload of new original image failed. Image fields will not be updated.");
+           // Consider throwing error or just proceeding without image update
+        }
+
+      } catch (e) {
+          if (kDebugMode) print("[updatePlantData] New image upload failed: $e");
+          // Proceed with other updates, but image fields won't be changed
+          // You could throw an error here if image update is mandatory: throw Exception("Failed to upload new image: $e");
+      }
+  }
+  // --- End Handle Image Replacement ---
+
+  // Remove null values for fields that should be explicitly set to null
+  // Firestore's update method handles non-provided fields correctly (doesn't change them),
+  // but we want to explicitly set diseaseName/Details to null if they are passed as null.
   if (diseaseName == null) dataToUpdate['diseaseName'] = null;
   if (diseaseDetails == null) dataToUpdate['diseaseDetails'] = null;
 
-  if (kDebugMode)
-    print("Attempting to update plant $plantId with data: $dataToUpdate");
-
+  // Perform the Firestore update
+  if (kDebugMode) print("[updatePlantData] Attempting Firestore update for $plantId with data: $dataToUpdate");
   try {
     await plantDocRef.update(dataToUpdate);
-    if (kDebugMode) print("Plant $plantId updated successfully.");
+    if (kDebugMode) print("[updatePlantData] Plant $plantId updated successfully in Firestore.");
   } catch (e) {
-    if (kDebugMode) print("Failed to update plant $plantId: $e");
-    rethrow; // Rethrow error for handling in UI/Provider
+    if (kDebugMode) print("[updatePlantData] Failed Firestore update for plant $plantId: $e");
+    rethrow; // Critical error, rethrow for UI handling
   }
 }
 
@@ -402,27 +544,36 @@ Future<void> deleteUserPlant(String plantId, String? imageUrl) async {
   if (imageUrl != null &&
       imageUrl.isNotEmpty &&
       imageUrl != 'N/A' &&
-      imageUrl.startsWith('gs://')) {
-    if (kDebugMode) print("Attempting to delete Storage image: $imageUrl");
-    try {
-      Reference storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
-      await storageRef.delete();
-      if (kDebugMode)
-        print("Firebase Storage image deleted successfully: $imageUrl");
-    } catch (error) {
-      // Log storage deletion errors, but decide if they should block success
-      if (kDebugMode) {
-        print("Failed to delete Firebase Storage image ($imageUrl): $error");
-        // remember future Stevie: check for common errors:
-        // Common error: Permission denied (check rules)
-        // Common error: Object not found (maybe already deleted or URL mismatch)
-        // Common error: Permissions issue
+      imageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
+    if (kDebugMode) { print("Attempting to delete ORIGINAL Storage image using URL: $imageUrl"); }
+    
+   try {
+        Reference storageRefOriginal = FirebaseStorage.instance.refFromURL(imageUrl);
+        await storageRefOriginal.delete();
+        if (kDebugMode) { print("Firebase Storage ORIGINAL image deleted successfully: $imageUrl"); }
+      } catch (error) {
+        if (kDebugMode) { print("Failed to delete Firebase Storage ORIGINAL image ($imageUrl): $error"); }
+        // Decide if failure here should be fatal - often okay to continue if Firestore doc deleted
       }
-      // note to future Stevie: Consider if you want to rethrow this error or not.
-      // Optional: Rethrow only specific critical storage errors?
-      // For now, we allow Firestore deletion to succeed even if image deletion fails.
-      // Consider adding logging to track these failures.
-    }
+
+      // 3. Attempt to Delete Thumbnail Image
+      // Construct the expected thumbnail URL (without token)
+      String? thumbnailUrl = _generateThumbnailUrl(imageUrl, "_200x200"); // Use the helper
+
+      if (thumbnailUrl != null) {
+        if (kDebugMode) { print("Attempting to delete THUMBNAIL Storage image using URL: $thumbnailUrl"); }
+        try {
+           Reference storageRefThumbnail = FirebaseStorage.instance.refFromURL(thumbnailUrl);
+           await storageRefThumbnail.delete();
+           if (kDebugMode) { print("Firebase Storage THUMBNAIL image deleted successfully: $thumbnailUrl"); }
+        } catch (error) {
+           if (kDebugMode) { print("Failed to delete Firebase Storage THUMBNAIL image ($thumbnailUrl): $error"); }
+           // Log error, but usually okay to proceed if original/doc deleted.
+           // Common error here: object-not-found if thumbnail creation failed earlier.
+        }
+      } else {
+         if (kDebugMode) { print("Could not generate thumbnail URL for deletion from original: $imageUrl"); }
+      }
   } else if (imageUrl != null &&
       !imageUrl.startsWith('gs://') &&
       imageUrl != 'N/A') {
