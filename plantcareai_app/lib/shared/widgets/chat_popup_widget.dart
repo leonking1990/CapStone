@@ -1,5 +1,6 @@
 import 'dart:async';
 // import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -43,12 +44,14 @@ class _ChatPopupWidgetState extends State<ChatPopupWidget> {
            _messages = loadedMessages.where((msg) => !msg.text.startsWith("[Error loading")).toList(); // Assign directly
         } else {
            // No saved history, add initial greeting if no context
-           if (_chatContext == null || _chatContext!.isEmpty) {
+           //if (_chatContext == null || _chatContext!.isEmpty) {
               _messages.insert(0, ChatMessage(text: "Hi! How can I help?", isUser: false, id: 'greeting_msg'));
-           }
+           //}
         }
      } catch (e) {
-         print("Error loading chat history: $e");
+         if (kDebugMode) {
+           print("Error loading chat history: $e");
+         }
          // Handle error, maybe show a default greeting
          _messages = [ChatMessage(text: "Hi! Error loading history.", isUser: false, id: 'error_msg')];
      } finally {
@@ -97,8 +100,7 @@ class _ChatPopupWidgetState extends State<ChatPopupWidget> {
      setState(() {
        _messages.clear();
        
-       if (_chatContext != null && _chatContext!.isNotEmpty) {
-          
+       if (_chatContext != null && _chatContext!.isNotEmpty) {          
           _messages.insert(0, ChatMessage(text: "History cleared. How can I help?", isUser: false, id: 'cleared_msg'));
        } else {
           _messages.insert(0, ChatMessage(text: "Hi! How can I help?", isUser: false, id: 'greeting_msg'));

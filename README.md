@@ -1,4 +1,7 @@
 # PlantCareAI: Plant Species & Health Identification
+Hello Professor Hill click the goto link (or go to bottom) for instrctons how to to run training program:
+
+- [Grading](#Note-for-Matt-Hill)
 
 This project combines a Flutter mobile application with a Python backend powered by Machine Learning to identify plant species, diagnose potential health issues, and provide relevant care information.
 
@@ -54,7 +57,7 @@ CapStone/
 │   ├── server_main.py    # Main FastAPI application script
 │   ├── perenual_client.py # Client for Perenual API with disk caching
 │   ├── server_requirements.txt # Python dependencies
-│   ├── models/           # &lt;&lt;&lt;&lt;&lt;&lt; Place trained .keras models here >>>>>>
+│   ├── models/           # Place trained .keras models here >>>>>>
 │   │   ├── plant_classifier.keras   (REQUIRED)
 │   │   ├── health_classifier.keras  (REQUIRED)
 │   │   ├── plant_detector.keras   (REQUIRED)
@@ -62,8 +65,8 @@ CapStone/
 │   ├── mappings/         # JSON mapping files for model outputs
 │   │   ├── species_map.json         (REQUIRED)
 │   │   └── disease_map.json         (REQUIRED)
-│   ├── cache/            # &lt;&lt;&lt;&lt; Created automatically by perenual_client.py >>>>
-│   ├── .env              # &lt;&lt;&lt;&lt;&lt;&lt; Create this file for Perenual API Key >>>>>>
+│   ├── cache/            # Created automatically by perenual_client.py >>>>
+│   ├── .env              # Create this file for Perenual API Key >>>>>>
 │   └── serverTest/       # Basic server endpoint tests (test_upload.py)
 ├── Training_program/     # Scripts & resources for ML model training
 │   ├── CNNModel.py       # Model definition class
@@ -213,3 +216,18 @@ The `Training_program/` directory contains Python scripts (`main.py`, `CNNModel.
 * **Firebase Setup:** The Flutter app **will not function correctly** without proper Firebase project setup and the inclusion of the `google-services.json` / `GoogleService-Info.plist` configuration files in the `plantcareai_app/` directory structure.
 * **Model Accuracy:** The accuracy of predictions depends entirely on the quality and quantity of data used to train the models in the `Training_program/`.
 * **Perenual Matching:** The backend uses the *first* result from Perenual's name search. This might not always be the correct species for ambiguous names.
+
+
+
+## Note for Matt Hill
+As agreed, I added a mode for easy grading. Follow the instructions below:
+1. CD into `Training_program`
+2. run:
+  ```bash 
+  pip install -r requirements.txt
+  ```
+3. run:
+  ```bash
+  python main.py
+  ```
+4. In the program, enter `yes` to start test mode, then follow the remaining prompts.

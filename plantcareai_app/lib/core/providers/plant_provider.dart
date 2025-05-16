@@ -30,7 +30,7 @@ class PlantProvider extends ChangeNotifier {
        _plants.removeWhere((p) => p['plantId'] == plantId); _plants.add(plantDataMap); notifyListeners();
    }
 
-  // *** ADD NEW FUNCTION to update local state for an existing plant ***
+  // FUNCTION to update local state for an existing plant ***
   void updatePlantLocally(String plantId, Map<String, dynamic> updatedData) {
     // Find the index of the plant to update
     int index = _plants.indexWhere((p) => p['plantId'] == plantId);
@@ -59,7 +59,8 @@ class PlantProvider extends ChangeNotifier {
         final String? imageUrl = plantToRemove['image'] as String?; _isDeleting = true; _error = null; notifyListeners();
         try { await deleteUserPlant(plantId, imageUrl); _plants.removeWhere((p) => p['plantId'] == plantId); _error = null;} //
         catch (e) { if (kDebugMode) print("Error removing plant $plantId: $e"); _error = "Failed to delete plant.";}
-        finally { _isDeleting = false; notifyListeners();}
+        finally { _isDeleting = false;
+        print("[PlantProvider] Calling notifyListeners() after deletion attempt."); notifyListeners();}
    }
 
   // --- markPlantAsWatered  ---

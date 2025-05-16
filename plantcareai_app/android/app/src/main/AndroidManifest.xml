@@ -4,6 +4,8 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
+            android:requestLegacyExternalStorage="false"
+            android:usesCleartextTraffic="true"
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
@@ -46,6 +48,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <!-- Queries for intents -->
     <queries>

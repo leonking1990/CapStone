@@ -83,34 +83,53 @@ def main():
     training, and deployment for various plant-related models.
     """
     print("--- Starting Plant AI Training Program ---\n")
+    
+    test_choice = ""
+    while test_choice not in ["yes", "no"]:
+        test_choice = input(
+            "Hello Matt Hill, enter yes to enter testing? (yes/no): ").strip().lower()
+    
+    is_test = False
+    if test_choice == "yes":
+        is_test = True
+        BASE_DATA_DIR_PLANT_CLASSIFIER = "test_data"
+        print("Running in test mode.")
+        
+    
 
     # --- Initial Checks ---
     print("TensorFlow Version:", tf.__version__)
     print("GPU Available:", tf.config.list_physical_devices('GPU'))
+    
+    save_dir = indices_NAME = save_path = selected_model_type = ""
+    
+    if not is_test:
+        # --- Model Type Selection ---
+        print("Select the type of model to work with:")
+        model_options = {
+            "1": "PlantClassifier",
+            "2": "PlantDetector",
+            "3": "HealthDetector",
+            "4": "HealthClassifier"
+        }
+        for key, value in model_options.items():
+            print(f"  {key}: {value}")
 
-    # --- Model Type Selection ---
-    print("Select the type of model to work with:")
-    model_options = {
-        "1": "PlantClassifier",
-        "2": "PlantDetector",
-        "3": "HealthDetector",
-        "4": "HealthClassifier"
-    }
-    for key, value in model_options.items():
-        print(f"  {key}: {value}")
+        selected_model_type = None
+        while selected_model_type is None:
+            choice = input("Enter the number for the model type: ").strip()
+            selected_model_type = model_options.get(choice)
+            if selected_model_type is None:
+                print("❌ Invalid choice. Please enter a number from the list.")
 
-    selected_model_type = None
-    while selected_model_type is None:
-        choice = input("Enter the number for the model type: ").strip()
-        selected_model_type = model_options.get(choice)
-        if selected_model_type is None:
-            print("❌ Invalid choice. Please enter a number from the list.")
+        print(f"\nSelected Model Type: {selected_model_type}")
 
-    print(f"\nSelected Model Type: {selected_model_type}")
-
-    indices_NAME = selected_model_type + '_' + CLASS_INDICES_FILENAME
-    save_path = os.path.join("models", selected_model_type, indices_NAME)
-    save_dir = os.path.join("models", selected_model_type)
+        indices_NAME = selected_model_type + '_' + CLASS_INDICES_FILENAME
+        save_path = os.path.join("models", selected_model_type, indices_NAME)
+        save_dir = os.path.join("models", selected_model_type)
+    else:
+        selected_model_type = "PlantClassifier"
+        print(f"\nSelected Model Type: {selected_model_type}")
 
     # --- Handle Unimplemented Models ---
     if selected_model_type in ["PlantDetector",]:
@@ -120,21 +139,26 @@ def main():
 
     # --- Build/Load Choice ---
     model_choice = ""
-    while model_choice not in ["build", "load"]:
-        model_choice = input(
-            "Build a new model or load an existing one? (build/load): ").strip().lower()
+    if not is_test:
+        
+        while model_choice not in ["build", "load"]:
+            model_choice = input(
+                "Build a new model or load an existing one? (build/load): ").strip().lower()
+    else:
+        model_choice = "build"
 
     use_transfer_learning = False  # Default for custom models or health detector
-    if model_choice == "build":
-        # Ask about transfer learning only if relevant (e.g., for PlantClassifier)
-        # You might customize this prompt based on selected_model_type if needed
-        if selected_model_type == "PlantClassifier" or selected_model_type == "HealthClassifier":
-            model_type_choice = ""
-            while model_type_choice not in ["custom", "pretrained"]:
-                model_type_choice = input(
-                    "Use custom CNN or pretrained transfer model? (custom/pretrained): ").strip().lower()
-            use_transfer_learning = (model_type_choice == "pretrained")
-        # Add similar prompts here if HealthDetector build also has custom/pretrained option
+    if not is_test:
+        if model_choice == "build":
+            # Ask about transfer learning only if relevant (e.g., for PlantClassifier)
+            # You might customize this prompt based on selected_model_type if needed
+            if selected_model_type == "PlantClassifier" or selected_model_type == "HealthClassifier":
+                model_type_choice = ""
+                while model_type_choice not in ["custom", "pretrained"]:
+                    model_type_choice = input(
+                        "Use custom CNN or pretrained transfer model? (custom/pretrained): ").strip().lower()
+                use_transfer_learning = (model_type_choice == "pretrained")
+            # Add similar prompts here if HealthDetector build also has custom/pretrained option
 
     # --- Dataset Preparation ---
     print("\n--- Preparing Datasets ---")
