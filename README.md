@@ -125,8 +125,9 @@ CapStone/
     * Ensure your `species_map.json` and `disease_map.json` files are present in the `Server/mappings/` directory.
     * The keys in these files should be **strings representing the numerical index** output by your corresponding classifier models (e.g., `"0"`, `"1"`, ...).
     * The structure should match what `server_main.py` expects:
-        * `species_map.json`: `{"0": {"name": "...", "family": "...", "genus": "..."}, ...}`
-        * `disease_map.json`: `{"0": {"name": "...", "details": "..."}, ...}`
+        * `species_map.json`: `{"0": "name", "1": "name", ...}`
+        * `disease_map.json`: `{"0": "name", "1": "name", ...}`
+      
 *For more detailed backend configuration, testing, and API documentation, please see [Server/README.md](Server/README.md).*
 
 ### Flutter App Setup (`plantcareai_app/`)
@@ -175,6 +176,8 @@ CapStone/
         flutter run
         ```
     * The app should build and launch. Log in/Sign up and navigate to the plant scanning/prediction feature.
+      
+*For more detailed Flutter setup, build instructions, and architecture notes, please see [plantcareai_app/README.md](plantcareai_app/README.md).*
 
 ## API Endpoint (`/predict`)
 
@@ -219,6 +222,7 @@ The `Training_program/` directory contains Python scripts (`main.py`, `CNNModel.
 
 
 
+
 ## Note for Matt Hill
 As agreed, I added a mode for easy grading. Follow the instructions below:
 1. CD into `Training_program`
@@ -231,3 +235,6 @@ As agreed, I added a mode for easy grading. Follow the instructions below:
   python main.py
   ```
 4. In the program, enter `yes` to start test mode, then follow the remaining prompts.
+
+*For detailed instructions on data preparation, training execution, and model evaluation, please see [Training_program/README.md](Training_program/README.md).*
+
